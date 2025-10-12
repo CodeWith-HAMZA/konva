@@ -1,0 +1,97 @@
+import { useEffect, useRef } from "react";
+import * as fabric from "fabric";
+
+export default function FabricCanvas() {
+  const canvasRef = useRef(null);
+  const fabricRef = useRef(null);
+  const rectRefs = useRef({});
+
+  useEffect(() => {
+    const canvas = new fabric.Canvas(canvasRef.current, {
+      width: 600,
+      height: 400,
+    });
+
+    fabricRef.current = canvas;
+
+    // set background image
+    fabric.Image.fromURL(
+      "https://dummyimage.com/600x400/000/fff&text=canva-sbg-image",
+      (img) => {
+        canvas.setBackgroundImage(
+          img,
+          canvas.renderAll.bind(canvas),
+          {
+            scaleX: canvas.width / img.width,
+            scaleY: canvas.height / img.height,
+          }
+        );
+      },
+      { crossOrigin: "anonymous" }
+    );
+
+    return () => canvas.dispose();
+  }, []);
+
+  const addRectangle = (position) => {
+    const canvas = fabricRef.current;
+    if (!canvas) return;
+
+    const positions = {
+      a: { left: 50, top: 50 },
+      b: { left: 250, top: 150 },
+      c: { left: 400, top: 250 },
+    };
+
+    // If already exists → select it
+    if (rectRefs.current[position]) {
+      const existingRect = rectRefs.current[position];
+      canvas.setActiveObject(existingRect);
+      canvas.requestRenderAll();
+      return;
+    }
+
+    // Create new rectangle
+    const rect = new fabric.Rect({
+      width: 100,
+      height: 60,
+      left: positions[position].left,
+      top: positions[position].top,
+      fill: "transparent",
+      stroke: "#000",
+      strokeDashArray: [5, 5],
+      strokeWidth: 2,
+    });
+
+    rectRefs.current[position] = rect;
+    canvas.add(rect);
+    canvas.setActiveObject(rect);
+    canvas.requestRenderAll();
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <canvas ref={canvasRef} className="border border-gray-400 rounded-md" />
+      <div className="flex gap-2">
+        <button
+          onClick={() => addRectangle("a")}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        >
+          A
+        </button>
+        <button
+          onClick={() => addRectangle("b")}
+          className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+        >
+          B
+        </button>
+        <button
+          onClick={() => addRectangle("c")}
+          className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600"
+        >
+          C
+        </button>
+      </div>
+    </div>
+  );
+}
